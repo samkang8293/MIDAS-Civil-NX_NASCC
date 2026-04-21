@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<title>MIDAS Civil NX</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;}
+:root{
+  --primary:#0066CC;
+  --primary-light:#3399FF;
+  --primary-xlight:#E8F4FF;
+  --primary-dark:#004C99;
+  --accent:#00B4D8;
+  --accent-light:#90E0EF;
+  --con:#E07A00;
+  --con-light:#F5A623;
+  --con-xlight:#FFF4E5;
+  --con-dark:#B86200;
+  --bg:#F5F8FC;
+  --bg2:#FFFFFF;
+  --bg3:#EDF2F7;
+  --surface:#FFFFFF;
+  --text:#1A2332;
+  --text2:#4A5568;
+  --text3:#8896A6;
+  --border:#E2E8F0;
+  --border-light:#F0F4F8;
+  --radius:12px;
+  --radius-sm:8px;
+  --shadow:0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 12px rgba(0,0,0,.08);
+  --shadow-lg:0 8px 24px rgba(0,0,0,.1);
+  --safe-top:env(safe-area-inset-top, 0px);
+  --safe-bottom:env(safe-area-inset-bottom, 0px);
+}
+html,body{
+  width:100%;height:100%;overflow:hidden;
+  background:var(--bg);
+  font-family:'DM Sans',sans-serif;color:var(--text);
+  touch-action:manipulation;overscroll-behavior:none;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ── SCREENS ─────────────────────────────── */
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .28s ease,transform .28s ease;will-change:opacity,transform;}
+.screen.active{opacity:1;pointer-events:all;transform:none!important;}
+.screen.slide-left{transform:translateX(-40px);}
+.screen.slide-right{transform:translateX(40px);}
+
+/* ── HOME ────────────────────────────────── */
+#home{background:var(--bg);overflow:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+
+.home-bg{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.home-bg .grid-dots{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(0,102,204,.06) 1px,transparent 1px);background-size:32px 32px;}
+.home-bg .glow1{position:absolute;top:-200px;right:-100px;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(0,180,216,.08) 0%,transparent 65%);}
+.home-bg .glow2{position:absolute;bottom:-200px;left:-100px;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(0,102,204,.06) 0%,transparent 65%);}
+
+.home-inner{position:relative;z-index:1;display:flex;flex-direction:column;min-height:100%;padding-bottom:calc(32px + var(--safe-bottom));}
+
+/* ── TOP BAR ─────────────────────────────── */
+.top-bar{
+  display:flex;align-items:center;gap:14px;
+  padding:calc(16px + var(--safe-top)) 32px 14px;
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.midas-logo{height:30px;width:auto;flex-shrink:0;}
+.top-divider{width:1px;height:22px;background:var(--border);flex-shrink:0;}
+.product-badge{display:flex;align-items:center;gap:10px;}
+.cvl-logo{height:28px;width:auto;border-radius:4px;flex-shrink:0;}
+.product-name{font-family:'Plus Jakarta Sans',sans-serif;font-size:17px;font-weight:700;letter-spacing:-.01em;line-height:1.15;color:var(--text);}
+.product-name span{display:block;font-size:10px;font-weight:500;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-top:1px;}
+
+/* ── HERO ────────────────────────────────── */
+.hero{padding:28px 32px 18px;flex-shrink:0;}
+.hero h1{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:clamp(30px,5vw,44px);font-weight:800;line-height:1.05;
+  letter-spacing:-.02em;color:var(--text);
+}
+.hero h1 em{font-style:normal;color:var(--primary);}
+.hero .tagline{font-size:14px;color:var(--text2);margin-top:10px;max-width:460px;line-height:1.6;font-weight:400;}
+
+/* ── BRIDGE SVG ──────────────────────────── */
+.bridge-strip{padding:0 32px;margin:4px 0 14px;flex-shrink:0;}
+
+/* ── PERSONA GRID ────────────────────────── */
+.persona-section{padding:0 32px;flex:1;}
+.persona-section .section-label{
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:10px;font-weight:700;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--text3);
+  margin-bottom:12px;padding-left:2px;
+}
+.persona-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+
+/* ── PERSONA CARD ────────────────────────── */
+.p-card{
+  border-radius:var(--radius);border:1.5px solid var(--border);
+  padding:22px 20px;cursor:pointer;display:flex;flex-direction:column;gap:8px;
+  position:relative;overflow:hidden;
+  transition:border-color .2s,transform .1s,box-shadow .2s;
+  background:var(--bg2);box-shadow:var(--shadow);
+  -webkit-user-select:none;user-select:none;
+}
+.p-card:active{transform:scale(.98);}
+.p-card.eng{border-color:rgba(0,102,204,.2);}
+.p-card.eng:hover{border-color:var(--primary);box-shadow:var(--shadow-md);}
+.p-card.con{border-color:rgba(224,122,0,.2);}
+.p-card.con:hover{border-color:var(--con);box-shadow:var(--shadow-md);}
+
+.p-card .type-label{font-family:'Plus Jakarta Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;}
+.eng .type-label{color:var(--primary);}
+.con .type-label{color:var(--con);}
+
+.p-card .card-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.eng .card-icon{background:var(--primary-xlight);border:1px solid rgba(0,102,204,.15);}
+.con .card-icon{background:var(--con-xlight);border:1px solid rgba(224,122,0,.15);}
+
+.p-card h2{font-family:'Plus Jakarta Sans',sans-serif;font-size:clamp(20px,2.8vw,26px);font-weight:700;line-height:1.1;letter-spacing:-.01em;color:var(--text);}
+.p-card .desc{font-size:12px;color:var(--text2);line-height:1.5;font-weight:400;}
+
+.p-card .pill-row{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;}
+.p-card .pill{font-size:10px;padding:3px 8px;border-radius:20px;font-weight:500;letter-spacing:.02em;}
+.eng .pill{background:var(--primary-xlight);color:var(--primary-dark);border:1px solid rgba(0,102,204,.12);}
+.con .pill{background:var(--con-xlight);color:var(--con-dark);border:1px solid rgba(224,122,0,.12);}
+
+.p-card .arrow-cta{
+  display:flex;align-items:center;justify-content:space-between;margin-top:auto;
+  padding-top:12px;border-top:1px solid var(--border-light);
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;
+  letter-spacing:.04em;text-transform:uppercase;
+}
+.eng .arrow-cta{color:var(--primary);}
+.con .arrow-cta{color:var(--con);}
+
+/* ── INNER PAGES ─────────────────────────── */
+.inner-page{background:var(--bg);}
+.ip-header{display:flex;align-items:center;gap:0;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg2);}
+.ip-header .color-stripe{width:4px;height:100%;flex-shrink:0;align-self:stretch;}
+.eng-page .color-stripe{background:var(--primary);}
+.con-page .color-stripe{background:var(--con);}
+.ip-header .header-content{padding:calc(14px + var(--safe-top)) 24px 14px;flex:1;display:flex;align-items:center;gap:14px;}
+.back-btn{
+  display:flex;align-items:center;gap:5px;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--text2);
+  cursor:pointer;padding:10px 14px;border:1px solid var(--border);
+  border-radius:var(--radius-sm);background:var(--bg2);
+  transition:background .15s;flex-shrink:0;min-height:44px;
+}
+.back-btn:hover,.back-btn:active{background:var(--bg3);}
+.ip-header-text h2{font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:700;line-height:1;color:var(--text);}
+.ip-header-text p{font-size:11px;color:var(--text3);margin-top:2px;font-weight:400;}
+.eng-page .ip-header-text h2{color:var(--primary-dark);}
+.con-page .ip-header-text h2{color:var(--con-dark);}
+
+.ip-body{display:flex;flex:1;min-height:0;}
+
+/* ── SIDEBAR ─────────────────────────────── */
+.ip-sidebar{
+  width:200px;flex-shrink:0;
+  border-right:1px solid var(--border);background:var(--bg2);
+  padding:14px 10px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;
+}
+.nav-btn{
+  display:flex;align-items:center;gap:8px;
+  padding:11px 12px;border-radius:var(--radius-sm);
+  cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;
+  color:var(--text2);transition:background .15s,color .15s;
+  border:none;background:transparent;text-align:left;width:100%;min-height:42px;
+}
+.nav-btn .nav-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;opacity:.3;transition:opacity .15s;}
+.nav-btn:hover,.nav-btn:active{background:var(--bg3);color:var(--text);}
+.nav-btn.active{background:var(--primary-xlight);color:var(--primary-dark);font-weight:600;}
+.nav-btn.active .nav-dot{opacity:1;}
+.eng-page .nav-btn .nav-dot{background:var(--primary);}
+.con-page .nav-btn .nav-dot{background:var(--con);}
+.con-page .nav-btn.active{background:var(--con-xlight);color:var(--con-dark);}
+
+/* ── CONTENT ─────────────────────────────── */
+.ip-content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:24px 28px;background:var(--bg);}
+.topic-panel{display:none;}
+.topic-panel.active{display:block;}
+
+.tp-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:700;letter-spacing:-.01em;margin-bottom:4px;color:var(--text);}
+.tp-lead{font-size:13px;color:var(--text2);margin-bottom:18px;line-height:1.6;font-weight:400;max-width:620px;}
+
+/* ── HOOK CARDS (stat row) ───────────────── */
+.hook-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
+.hook-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
+  padding:16px 16px 14px;box-shadow:var(--shadow);position:relative;overflow:hidden;
+}
+.hook-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.eng-page .hook-card::before{background:linear-gradient(90deg,var(--primary),var(--accent));}
+.con-page .hook-card::before{background:linear-gradient(90deg,var(--con),var(--con-light));}
+.hook-card .hv{font-family:'Plus Jakarta Sans',sans-serif;font-size:26px;font-weight:800;line-height:1;letter-spacing:-.02em;}
+.eng-page .hook-card .hv{color:var(--primary);}
+.con-page .hook-card .hv{color:var(--con);}
+.hook-card .hl{font-size:11px;color:var(--text2);margin-top:4px;line-height:1.4;font-weight:400;}
+
+/* ── FEATURE CARDS ───────────────────────── */
+.f-list{display:flex;flex-direction:column;gap:8px;}
+.fi{
+  display:flex;gap:12px;padding:14px 16px;border:1px solid var(--border);
+  border-radius:var(--radius-sm);background:var(--bg2);box-shadow:var(--shadow);
+  transition:box-shadow .15s;
+}
+.fi:hover{box-shadow:var(--shadow-md);}
+.fi-ico{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.eng-page .fi-ico{background:var(--primary-xlight);border:1px solid rgba(0,102,204,.12);}
+.con-page .fi-ico{background:var(--con-xlight);border:1px solid rgba(224,122,0,.12);}
+.fi-body h4{font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:600;letter-spacing:-.01em;margin-bottom:2px;color:var(--text);}
+.fi-body p{font-size:12px;color:var(--text2);line-height:1.5;font-weight:400;}
+
+/* ── MEDIA PLACEHOLDER ───────────────────── */
+.media-slot{
+  border:2px dashed var(--border);border-radius:var(--radius);
+  padding:24px 16px;text-align:center;margin:10px 0;
+  background:var(--bg3);color:var(--text3);font-size:11px;
+  font-family:'DM Sans',sans-serif;
+}
+.media-slot code{font-size:10px;background:var(--bg2);padding:2px 6px;border-radius:4px;border:1px solid var(--border);}
+
+/* ── WORKFLOW STEPS ──────────────────────── */
+.wf{display:flex;flex-direction:column;}
+.ws{display:flex;gap:12px;}
+.ws-left{display:flex;flex-direction:column;align-items:center;}
+.ws-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;flex-shrink:0;}
+.eng-page .ws-num{background:var(--primary-xlight);border:1px solid rgba(0,102,204,.2);color:var(--primary);}
+.con-page .ws-num{background:var(--con-xlight);border:1px solid rgba(224,122,0,.2);color:var(--con);}
+.ws-line{width:1px;flex:1;min-height:10px;margin:3px 0;opacity:.3;}
+.eng-page .ws-line{background:var(--primary);}
+.con-page .ws-line{background:var(--con);}
+.ws:last-child .ws-line{display:none;}
+.ws-body{padding-bottom:14px;flex:1;}
+.ws-body h4{font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:600;margin-bottom:2px;color:var(--text);}
+.ws-body p{font-size:12px;color:var(--text2);line-height:1.5;font-weight:400;}
+
+/* ── CODE TABLE ──────────────────────────── */
+.code-table-wrap{overflow-x:auto;margin-bottom:16px;}
+.code-table{width:100%;border-collapse:collapse;font-size:12px;background:var(--bg2);border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);}
+.code-table th{text-align:left;padding:10px 14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);background:var(--bg3);border-bottom:1px solid var(--border);}
+.code-table td{padding:9px 14px;border-bottom:1px solid var(--border-light);font-size:12px;vertical-align:top;color:var(--text2);}
+.code-table td:first-child{font-weight:600;color:var(--text);white-space:nowrap;}
+.code-table tr:last-child td{border-bottom:none;}
+
+/* ── GRID CARDS ──────────────────────────── */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.g-card{padding:14px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg2);box-shadow:var(--shadow);}
+.g-card h4{font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;margin-bottom:3px;color:var(--text);}
+.g-card p{font-size:11px;color:var(--text2);line-height:1.5;font-weight:400;}
+
+/* ── BRIDGE TYPE GRID ────────────────────── */
+.bridge-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;}
+.bridge-type{
+  padding:14px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);
+  background:var(--bg2);box-shadow:var(--shadow);text-align:center;cursor:default;
+  transition:box-shadow .15s,border-color .15s;
+}
+.bridge-type:hover{box-shadow:var(--shadow-md);border-color:rgba(0,102,204,.3);}
+.bridge-type .bt-icon{width:40px;height:40px;border-radius:8px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;background:var(--primary-xlight);border:1px solid rgba(0,102,204,.1);}
+.bridge-type h5{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;color:var(--text);line-height:1.3;}
+.bridge-type .bt-media{font-size:9px;color:var(--text3);margin-top:4px;font-style:italic;}
+
+/* ── SECTION LABEL ───────────────────────── */
+.sec-label{font-family:'Plus Jakarta Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin:18px 0 10px;padding-left:2px;}
+
+/* ── SCROLLBAR ───────────────────────────── */
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+::-webkit-scrollbar-thumb:hover{background:var(--text3);}
+
+/* ── ANIMATIONS ──────────────────────────── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
+.topic-panel.active .tp-title{animation:fadeUp .22s ease both;}
+.topic-panel.active .tp-lead{animation:fadeUp .22s .03s ease both;}
+.topic-panel.active .hook-row{animation:fadeUp .22s .06s ease both;}
+.topic-panel.active .f-list,.topic-panel.active .wf,.topic-panel.active .grid2,.topic-panel.active .code-table-wrap,.topic-panel.active .bridge-grid{animation:fadeUp .22s .09s ease both;}
+
+@keyframes cardIn{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+.p-card{animation:cardIn .3s ease both;}
+.p-card:nth-child(1){animation-delay:.04s;}
+.p-card:nth-child(2){animation-delay:.1s;}
+.p-card:nth-child(3){animation-delay:.16s;}
+
+/* ── RESPONSIVE ──────────────────────────── */
+@media(max-width:900px){
+  .bridge-grid{grid-template-columns:repeat(2,1fr);}
+  .hook-row{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:700px){
+  .persona-grid{grid-template-columns:1fr;}
+  .top-bar,.hero,.persona-section{padding-left:16px;padding-right:16px;}
+  .bridge-strip{padding:0 16px;}
+  .ip-sidebar{width:170px;}
+  .grid2{grid-template-columns:1fr;}
+}
+@media(max-width:500px){
+  .ip-sidebar{display:none;}
+  .ip-content{padding:18px 14px;}
+  .bridge-grid{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════ HOME ═════════════════════════════════ -->
+<div class="screen active" id="home">
+  <div class="home-bg"><div class="grid-dots"></div><div class="glow1"></div><div class="glow2"></div></div>
+  <div class="home-inner">
+    <div class="top-bar">
+      <img class="midas-logo" src="data:image/webp;base64,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" alt="MIDAS"/>
+      <div class="top-divider"></div>
+      <div class="product-badge">
+        <img class="cvl-logo" src="data:image/png;base64,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" alt="CVL"/>
+        <div class="product-name">MIDAS Civil NX<span>Bridge Engineering Platform</span></div>
+      </div>
+    </div>
+
+    <div class="hero">
+      <svg width="100%" height="40" viewBox="0 0 700 40" preserveAspectRatio="none" style="display:block;margin-bottom:14px;opacity:.5;">
+        <line x1="0" y1="30" x2="700" y2="30" stroke="rgba(0,102,204,.12)" stroke-width="1"/>
+        <rect x="90" y="8" width="2.5" height="24" rx="1.25" fill="#0066CC" opacity=".5"/>
+        <rect x="607" y="8" width="2.5" height="24" rx="1.25" fill="#0066CC" opacity=".5"/>
+        <path d="M91 10 Q350 0 609 10" fill="none" stroke="#0066CC" stroke-width="1.5" stroke-linecap="round" opacity=".6"/>
+        <line x1="200" y1="12" x2="200" y2="30" stroke="#3399FF" stroke-width=".6" opacity=".3"/>
+        <line x1="350" y1="5" x2="350" y2="30" stroke="#3399FF" stroke-width=".6" opacity=".3"/>
+        <line x1="500" y1="12" x2="500" y2="30" stroke="#3399FF" stroke-width=".6" opacity=".3"/>
+        <circle cx="91" cy="30" r="2.5" fill="#0066CC" opacity=".5"/>
+        <circle cx="609" cy="30" r="2.5" fill="#0066CC" opacity=".5"/>
+      </svg>
+      <h1>Select your <em>workflow</em></h1>
+      <p class="tagline">Choose your role to explore how MIDAS Civil NX supports bridge engineering from concept through construction.</p>
+    </div>
+
+    <div class="persona-section">
+      <div class="section-label" style="font-size: 18px">Choose your path</div>
+      <div class="persona-grid">
+        <!-- STRUCTURAL ENGINEER -->
+        <div class="p-card eng" onclick="showPage('engineer')">
+          <div class="type-label">Structural Engineer</div>
+          <div class="card-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 20L12 4l8 16" stroke="#0066CC" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 14h10" stroke="#0066CC" stroke-width="1.2" stroke-linecap="round"/></svg></div>
+          <h2>Designer, Rating &amp; Retrofitting</h2>
+          <p class="desc">New design, replacement, load rating, maintenance, and rehabilitation of bridge structures.</p>
+          <div class="pill-row">
+            <span class="pill">New Design</span><span class="pill">Replacement</span><span class="pill">Load Rating</span><span class="pill">Retrofitting</span><span class="pill">Code Checking</span>
+          </div>
+          <div class="arrow-cta">Explore <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M8 4l3 3-3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        </div>
+
+        <!-- CONTRACTOR -->
+        <div class="p-card con" onclick="showPage('contractor')">
+          <div class="type-label">Contractor / Construction</div>
+          <div class="card-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="13" width="18" height="7" rx="2" stroke="#E07A00" stroke-width="1.3"/><path d="M7 13V10a5 5 0 0110 0v3" stroke="#E07A00" stroke-width="1.3" stroke-linecap="round"/><circle cx="12" cy="17" r="1.5" fill="#E07A00"/></svg></div>
+          <h2>Construction Engineering</h2>
+          <p class="desc">Value engineering, temporary bridges, erection stability, falsework, and specialty structures.</p>
+          <div class="pill-row">
+            <span class="pill">Value Engineering</span><span class="pill">Temporary Bridges</span><span class="pill">Stability</span><span class="pill">Falsework</span><span class="pill">Pedestrian</span>
+          </div>
+          <div class="arrow-cta">Explore <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M8 4l3 3-3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ STRUCTURAL ENGINEER ══════════════════ -->
+<div class="screen slide-right" id="engineer">
+  <div style="display:flex;flex-direction:column;height:100%;background:var(--bg);" class="inner-page eng-page">
+    <div class="ip-header">
+      <div class="color-stripe"></div>
+      <div class="header-content">
+        <div class="back-btn" onclick="goHome()"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M8 2L3 6l5 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg> Back</div>
+        <div class="ip-header-text"><h2>Structural Engineer</h2><p>Design, Rating &amp; Retrofitting — MIDAS Civil NX</p></div>
+      </div>
+    </div>
+    <div class="ip-body">
+      <div class="ip-sidebar">
+        <div class="nav-btn active" onclick="showTopic('se','modelling')" id="se-modelling-btn"><span class="nav-dot"></span>Modelling</div>
+        <div class="nav-btn" onclick="showTopic('se','loads')" id="se-loads-btn"><span class="nav-dot"></span>Load Generation</div>
+        <div class="nav-btn" onclick="showTopic('se','code')" id="se-code-btn"><span class="nav-dot"></span>Code Checking</div>
+        <div class="nav-btn" onclick="showTopic('se','staged')" id="se-staged-btn"><span class="nav-dot"></span>Staged Construction</div>
+        <div class="nav-btn" onclick="showTopic('se','dynamic')" id="se-dynamic-btn"><span class="nav-dot"></span>Dynamic &amp; Fatigue</div>
+        <div class="nav-btn" onclick="showTopic('se','results')" id="se-results-btn"><span class="nav-dot"></span>Results &amp; Reporting</div>
+      </div>
+      <div class="ip-content">
+
+        <!-- ── MODELLING ─────────────────────── -->
+        <div class="topic-panel active" id="se-modelling">
+          <div class="tp-title">Build Any Bridge in Minutes</div>
+          <p class="tp-lead">Parametric wizards generate full 3D models with staging, lane geometry, and section assignments. Adjust span, skew, spacing, or bracing and regenerate in seconds.</p>
+          <div class="hook-row">
+            <div class="hook-card"><div class="hv">&lt; 1 min</div><div class="hl">Full 3D bridge model from wizard with staging</div></div>
+            <div class="hook-card"><div class="hv">Any Section</div><div class="hl">Drop a DXF — warping, shear center, torsion computed instantly</div></div>
+            <div class="hook-card"><div class="hv">8 Types</div><div class="hl">Steel composite, PSC, truss, arch, pedestrian, segmental, cable-stayed, suspension</div></div>
+          </div>
+
+          <div class="sec-label">Bridge Types</div>
+          <div class="bridge-grid">
+            <div class="bridge-type"><div class="bt-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M2 14h16M4 14V8h12v6" stroke="#0066CC" stroke-width="1.2" stroke-linecap="round"/></svg></div><h5>Steel Composite</h5><div class="bt-media">media/SE-steel-composite-design</div></div>
+            <div class="bridge-type"><div class="bt-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M2 14h16M4 14V8h12v6" stroke="#0066CC" stroke-width="1.2" stroke-linecap="round"/><path d="M7 8V5M13 8V5" stroke="#0066CC" stroke-width="1" stroke-linecap="round" stroke-dasharray="2 2"/></svg></div><h5>PSC Composite</h5><div class="bt-media">placeholder</div></div>
+            <div class="bridge-type"><div class="bt-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M2 14h16M4 14l4-8 4 8M8 6l4 8h4" stroke="#0066CC" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg></div><h5>Steel Truss</h5><div class="bt-media">media/SE-steel-truss-design</div></div>
+            <div class="bridge-type"><div class="bt-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 14 Q10 4 17 14" stroke="#0066CC" stroke-width="1.2" fill="none" stroke-linecap="round"/><path d="M3 14h14" stroke="#0066CC" stroke-width="1" stroke-linecap="round"/></svg></div><h5>Arch</h5><div class="bt-media">placeholder</div></div>
+            <div class="bridge-type"><div class="bt-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 12h14M6 12V7l4-3 4 3v5" stroke="#0066CC" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg></div><h5>Pedestrian</h5><div class="bt-media">media/SE-pedestrian-bridges</div></div>
+            <div class="bridge-type"><div class="bt-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="10" width="3" height="4" stroke="#0066CC" stroke-width="1"/><rect x="8" y="10" width="3" height="4" stroke="#0066CC" stroke-width="1"/><rect x="14" y="10" width="3" height="4" stroke="#0066CC" stroke-width="1"/><path d="M2 10h16" stroke="#0066CC" stroke-width="1.2" stroke-linecap="round"/></svg></div><h5>Segmental</h5><div class="bt-media">placeholder</div></div>
+            <div class="bridge-type"><div class="bt-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 14V4M15 14V4" stroke="#0066CC" stroke-width="1.2" stroke-linecap="round"/><path d="M5 4 Q10 8 15 4" stroke="#0066CC" stroke-width="1" fill="none"/><path d="M5 14h10" stroke="#0066CC" stroke-width="1.2" stroke-linecap="round"/><path d="M6 14l-1-5M8 14l-2-7M10 14l0-8M12 14l2-7M14 14l1-5" stroke="#0066CC" stroke-width=".6" opacity=".5"/></svg></div><h5>Cable Stayed</h5><div class="bt-media">placeholder</div></div>
+            <div class="bridge-type"><div class="bt-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 5 Q10 2 17 5" stroke="#0066CC" stroke-width="1.2" fill="none" stroke-linecap="round"/><path d="M3 5V14M17 5V14" stroke="#0066CC" stroke-width="1.2" stroke-linecap="round"/><path d="M3 14h14" stroke="#0066CC" stroke-width="1.2" stroke-linecap="round"/><path d="M5 14l-1-5M8 14l-3-8M10 14l0-9M12 14l3-8M15 14l1-5" stroke="#0066CC" stroke-width=".5" opacity=".4"/></svg></div><h5>Suspension</h5><div class="bt-media">placeholder</div></div>
+          </div>
+
+          <div class="sec-label">Key Capabilities</div>
+          <div class="f-list">
+            <div class="fi"><div class="fi-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 12V4l4-2 4 2v8l-4 2-4-2z" stroke="#0066CC" stroke-width="1.1" stroke-linejoin="round"/></svg></div><div class="fi-body"><h4>Section Property Calculator (SPC)</h4><p>Drop any cross-section or DXF. Warping constant, shear center, torsional stiffness computed instantly for haunched girders, hybrid sections, box girders.</p></div></div>
+            <div class="fi"><div class="fi-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5" stroke="#0066CC" stroke-width="1.1"/><path d="M3 13L13 3" stroke="#0066CC" stroke-width="1" opacity=".3"/></svg></div><div class="fi-body"><h4>Composite Behavior</h4><p>Automatic shear connector stiffness, transformed section properties for short-term and long-term. Non-composite and partially composite behavior modeled directly.</p></div></div>
+            <div class="fi"><div class="fi-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M8 3v10" stroke="#0066CC" stroke-width="1.1" stroke-linecap="round" opacity=".4"/><rect x="4" y="4" width="8" height="8" rx="1" stroke="#0066CC" stroke-width="1.1"/></svg></div><div class="fi-body"><h4>Parametric Control</h4><p>Adjust bracings, splice locations, supports, span info, skew. Model regenerates in seconds.</p></div></div>
+            <div class="fi"><div class="fi-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" stroke="#0066CC" stroke-width="1"/><rect x="9" y="2" width="5" height="5" rx="1" stroke="#0066CC" stroke-width="1"/><rect x="2" y="9" width="5" height="5" rx="1" stroke="#0066CC" stroke-width="1"/><rect x="9" y="9" width="5" height="5" rx="1" stroke="#0066CC" stroke-width="1"/></svg></div><div class="fi-body"><h4>Detail Where It Matters</h4><p>Beam, plate, solid, or combinations based on engineering requirement. Local mesh refinement at diaphragm connections, cross-frames, bearing zones.</p></div></div>
+          </div>
+
+          <div class="sec-label">Boundary &amp; Foundation</div>
+          <div class="grid2">
+            <div class="g-card"><h4>Bearing Types</h4><p>POT PTFE, Elastomeric, Spherical — Fixed, Free, Guided, or custom behavior.</p></div>
+            <div class="g-card"><h4>Soil Springs from Borelog</h4><p>Input SPT borelog data. MIDAS auto-computes soil springs. No manual spring calculation.</p></div>
+          </div>
+        </div>
+
+        <!-- ── LOAD GENERATION ───────────────── -->
+        <div class="topic-panel" id="se-loads">
+          <div class="tp-title">Every Vehicle. Every Lane. Automated.</div>
+          <p class="tp-lead">Define carriageway geometry and MIDAS auto-generates lane arrangements per AASHTO LRFD with full control over assignment.</p>
+          <div class="hook-row">
+            <div class="hook-card"><div class="hv">All 50 States</div><div class="hl">State-specific vehicles preloaded — no manual entry</div></div>
+            <div class="hook-card"><div class="hv">Auto Placement</div><div class="hl">Worst-case lane position found across all lanes in one run</div></div>
+            <div class="hook-card"><div class="hv">IL + IS</div><div class="hl">Critical placement location identified and traced automatically</div></div>
+          </div>
+          <div class="wf">
+            <div class="ws"><div class="ws-left"><div class="ws-num">1</div><div class="ws-line"></div></div><div class="ws-body"><h4>Carriageway Geometry</h4><p>Lane widths, curb positions, design lane widths. Auto-calculated per AASHTO LRFD.</p></div></div>
+            <div class="ws"><div class="ws-left"><div class="ws-num">2</div><div class="ws-line"></div></div><div class="ws-body"><h4>Moving Load Patterns</h4><p>HL-93 (TRK, TDN), HS-20, SU3, SU4, EV1-EV3, plus state-specific vehicles generated automatically. Worst-case position found across all simultaneous lanes in a single run.</p></div></div>
+            <div class="ws"><div class="ws-left"><div class="ws-num">3</div><div class="ws-line"></div></div><div class="ws-body"><h4>Influence Lines &amp; Surfaces</h4><p>Enveloped over all positions. Critical element path traced. Location of critical placement identified directly.</p></div></div>
+            <div class="ws"><div class="ws-left"><div class="ws-num">4</div><div class="ws-line"></div></div><div class="ws-body"><h4>Thermal &amp; Wind</h4><p>Uniform and differential temperature gradients per deck type. Wind loads auto-generated per bridge configuration.</p></div></div>
+            <div class="ws"><div class="ws-left"><div class="ws-num">5</div></div><div class="ws-body"><h4>Load Combinations</h4><p>Drag-and-drop Strength / Service / Fatigue combinations with automatic partial factors. Full envelope across all combinations.</p></div></div>
+          </div>
+        </div>
+
+        <!-- ── CODE CHECKING ─────────────────── -->
+        <div class="topic-panel" id="se-code">
+          <div class="tp-title">Design Codes — Current Through Legacy</div>
+          <p class="tp-lead">Clause-referenced checks with full intermediate values. Every check links to the governing formula.</p>
+          <div class="hook-row">
+            <div class="hook-card"><div class="hv">10+ Editions</div><div class="hl">LRFD 2nd through 10th, LFD, ASD — current and legacy in one platform</div></div>
+            <div class="hook-card"><div class="hv">Design + Rating</div><div class="hl">LRFR 2nd &amp; 3rd edition rating in the same program</div></div>
+            <div class="hook-card"><div class="hv">4 Materials</div><div class="hl">Steel, concrete, PSC, steel composite — all code-checked natively</div></div>
+          </div>
+
+          <div class="sec-label">Design Codes</div>
+          <div class="code-table-wrap">
+            <table class="code-table">
+              <thead><tr><th>Category</th><th>Supported Codes</th></tr></thead>
+              <tbody>
+                <tr><td>Steel (Beam/Brace/Column/Pile)</td><td>LRFD 10th (2024), 9th (2020), 8th (2017), 7th (2014)+interims, 6th (2012), 2nd (1998)+interims, LFD Std (1996), ASD Std (1996), AISC LRFD (2000, 1993), AISC ASD (1989)</td></tr>
+                <tr><td>Concrete (Beam/Slab/Column/Pile/Wall)</td><td>LRFD 10th (2024), AREMA (2023), 9th (2020), 8th (2017), 7th (2014)+interims, 6th (2012), 4th (2007), 2nd (1998)+interims, ACI 318 (2002), LFD Std (1996)</td></tr>
+                <tr><td>PSC / Pre/Post-Tensioned</td><td>LRFD 10th (2024), 9th (2020), 8th (2017), 7th (2014)+interims, 7th (2014), 6th (2012), 4th (2007), AREMA (2025)</td></tr>
+                <tr><td>Steel Composite</td><td>LRFD 10th (2024), 9th (2020), 8th (2017), 7th (2014)+interims, 6th (2012), 4th (2007)<br> 
+                <video width="320" height="240" controls>
+                  <source src="C:\Users\samue\MIDAS-Civil-NX_NASCC\assets\NA Civil NX Docs.zip\Tech. Doc 1\VIDEOS\1. Steel Composite Design (10th Edition)\1. Steel Composite Design (10th Edition).mp4" type="video/mp4">
+                  Video not found
+                </video></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="sec-label">Rating Codes</div>
+          <div class="code-table-wrap">
+            <table class="code-table">
+              <thead><tr><th>Category</th><th>Supported Codes</th></tr></thead>
+              <tbody>
+                <tr><td>Steel</td><td>LRFR 3rd Edition (2019)</td></tr>
+                <tr><td>Concrete</td><td>LRFR 3rd Edition (2019)</td></tr>
+                <tr><td>PSC</td><td>LRFR 3rd (2019), 2nd (2011)</td></tr>
+                <tr><td>Steel Composite</td><td>LRFR 3rd (2019), 2nd (2011)
+                  <video width="320" height="240" controls>
+                    <source src="C:\Users\samue\MIDAS-Civil-NX_NASCC\assets\NA Civil NX Docs.zip\Tech. Doc 1\VIDEOS\2. Steel Composite Rating (10th Edition)\2. Steel Composite Rating (10th Edition).mp4\" type="video/mp4">
+                    Video not found
+                  </video>
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="sec-label">Check Categories</div>
+          <div class="grid2">
+            <div class="g-card"><h4>Strength</h4><p>Section classification, negative/positive moment, shear. All limit states.</p></div>
+            <div class="g-card"><h4>Service</h4><p>Stress checks, deflection, crack control per applicable code.</p></div>
+            <div class="g-card"><h4>Fatigue</h4><p>ADTT-based fatigue assessment with detail category mapping.</p></div>
+            <div class="g-card"><h4>Constructability</h4><p>Stage-based checks against the defined construction sequence.</p></div>
+          </div>
+        </div>
+
+        <!-- ── STAGED CONSTRUCTION ───────────── -->
+        <div class="topic-panel" id="se-staged">
+          <div class="tp-title">Build It the Way You Build It</div>
+          <p class="tp-lead">Model every erection step, every deck pour, every prop removal. MIDAS captures locked-in stresses and actual stiffness at each stage.</p>
+          <div class="hook-row">
+            <div class="hook-card"><div class="hv">Locked-In</div><div class="hl">Actual stress state carried forward — not approximated</div></div>
+            <div class="hook-card"><div class="hv">Auto Camber</div><div class="hl">Reverse dead-load analysis with 10th-point tables for drawings</div></div>
+            <div class="hook-card"><div class="hv">3 Methods</div><div class="hl">AASHTO, CEB-FIP, CSA creep &amp; shrinkage built in</div></div>
+          </div>
+          <div class="f-list">
+            <div class="fi"><div class="fi-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 12l3-5 3 3 4-6" stroke="#0066CC" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="fi-body"><h4>Construction Stage Manager</h4><p>Activate/deactivate elements per stage. Steel self-weight at erection. Concrete dead load at each pour, span-by-span.</p></div></div>
+            <div class="fi"><div class="fi-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 11 Q8 5 13 11" stroke="#0066CC" stroke-width="1.2" fill="none" stroke-linecap="round"/><path d="M3 11h10" stroke="#0066CC" stroke-width=".8" opacity=".3"/></svg></div><div class="fi-body"><h4>Camber &amp; Dead-Load Deflection</h4><p>Staged dead-load analysis run in reverse automatically. Export camber diagram span-by-span or segment-by-segment with 10th-point tables for drawing production.</p></div></div>
+            <div class="fi"><div class="fi-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5" stroke="#0066CC" stroke-width="1.1"/><path d="M8 5v3l2.5 2" stroke="#0066CC" stroke-width="1.1" stroke-linecap="round"/></svg></div><div class="fi-body"><h4>Creep &amp; Shrinkage</h4><p>AASHTO, CEB-FIP, and CSA time-dependent methods built in (including EN method). Applied to composite deck over service life.</p></div></div>
+            <div class="fi"><div class="fi-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 12V6l5-4 5 4v6" stroke="#0066CC" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="fi-body"><h4>Erection Sequences</h4><p>One girder at a time. Deck pour sequence. Temporary supports and shoring towers. SIP formwork idealized as fully supported condition.</p></div></div>
+            <div class="fi"><div class="fi-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 8h8M8 4l4 4-4 4" stroke="#0066CC" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="fi-body"><h4>Incremental Launching</h4><p>Nose beam behavior, pier reaction tracking, sliding pad forces at each push. Temporary nose stresses checked automatically.</p></div></div>
+          </div>
+          <div class="media-slot">Video slots: <code>media/SE-construction-stage-erection</code> &middot; <code>media/SE-incremental-launching</code></div>
+        </div>
+
+        <!-- ── DYNAMIC & FATIGUE ─────────────── -->
+        <div class="topic-panel" id="se-dynamic">
+          <div class="tp-title">Modal, Seismic, Wind, Vibration, Fatigue</div>
+          <p class="tp-lead">Comprehensive dynamic capability in one environment — from eigenvalue analysis to pedestrian comfort checks.</p>
+          <div class="hook-row">
+            <div class="hook-card"><div class="hv">RSA + THA</div><div class="hl">Response spectrum and time-history (linear &amp; nonlinear) in one environment</div></div>
+            <div class="hook-card"><div class="hv">Buckling</div><div class="hl">Eigenvalue at any erection stage — critical load multiplier for bracing</div></div>
+            <div class="hook-card"><div class="hv">Real Loads</div><div class="hl">Actual walking, jogging, crowd time-histories — not simplified factors</div></div>
+          </div>
+          <div class="f-list">
+            <div class="fi"><div class="fi-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8h2l1.5-4 1.5 8 1.5-5 1.5 4h2" stroke="#0066CC" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="fi-body"><h4>Fatigue Life Assessment</h4><p>ADTT-based. Rainflow cycle counting. Miner's rule at each weld detail category. Critical hotspot locations identified.</p></div></div>
+            <div class="fi"><div class="fi-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v4M8 10v4M2 8h4M10 8h4" stroke="#0066CC" stroke-width="1.1" stroke-linecap="round"/><circle cx="8" cy="8" r="2" stroke="#0066CC" stroke-width="1"/></svg></div><div class="fi-body"><h4>Buckling &amp; Wind Stability</h4><p>Eigenvalue buckling during construction and completed state. Critical load multiplier used to assess wind stability and bracing adequacy.</p></div></div>
+            <div class="fi"><div class="fi-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 12l3-4 3 2 3-5" stroke="#0066CC" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/><circle cx="13" cy="5" r="1.5" stroke="#0066CC" stroke-width="1"/></svg></div><div class="fi-body"><h4>Pedestrian Vibration</h4><p>Walking, jogging, crowd loads as actual time-history inputs. Acceleration checked against comfort criteria for footbridges and pedestrian decks.</p></div></div>
+            <div class="fi"><div class="fi-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="4" width="12" height="8" rx="1.5" stroke="#0066CC" stroke-width="1.1"/><path d="M5 8h2M9 6v4" stroke="#0066CC" stroke-width="1" stroke-linecap="round"/></svg></div><div class="fi-body"><h4>Pushover Analysis</h4><p>Nonlinear hinge properties, P-Delta, performance point estimation via capacity spectrum.</p></div></div>
+          </div>
+          <div class="media-slot">Video slot: <code>media/SE-stability-erection-buckling</code></div>
+        </div>
+
+        <!-- ── RESULTS & REPORTING ───────────── -->
+        <div class="topic-panel" id="se-results">
+          <div class="tp-title">Concurrent Forces. Not Max Envelopes.</div>
+          <p class="tp-lead">Stop designing with maximum effects. Extract concurrent axial, shear, and moment at joints, bracings, and bearings for accurate connection design.</p>
+          <div class="hook-row">
+            <div class="hook-card"><div class="hv">Concurrent</div><div class="hl">Exact axial + shear + moment at the same stage</div></div>
+            <div class="hook-card"><div class="hv">One-Click</div><div class="hl">Word / Excel reports, submission-ready, clause-referenced</div></div>
+            <div class="hook-card"><div class="hv">Virtual Beams</div><div class="hl">Plate models → beam forces for code checks</div></div>
+          </div>
+          <div class="f-list">
+            <div class="fi"><div class="fi-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 12l3-5 3 3 4-6" stroke="#0066CC" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="fi-body"><h4>Envelope Diagrams</h4><p>Moment, shear, torsion across all combinations. Interactive readout by element or station.</p></div></div>
+            <div class="fi"><div class="fi-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="#0066CC" stroke-width="1.1"/><path d="M5 8l2 2 4-4" stroke="#0066CC" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="fi-body"><h4>Code Utilization Ratios</h4><p>Color-coded maps per member and check type. Under-designed and over-designed sections identified instantly.</p></div></div>
+            <div class="fi"><div class="fi-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="5" height="5" rx="1" stroke="#0066CC" stroke-width="1"/><rect x="9" y="3" width="5" height="5" rx="1" stroke="#0066CC" stroke-width="1"/><rect x="5" y="8" width="6" height="5" rx="1" stroke="#0066CC" stroke-width="1"/></svg></div><div class="fi-body"><h4>Stress Contour Maps</h4><p>Von Mises, principal, membrane on plate and beam elements. Virtual beams extract design forces from any plate geometry.</p></div></div>
+            <div class="fi"><div class="fi-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="1.5" stroke="#0066CC" stroke-width="1.1"/><path d="M5 6h6M5 8.5h4M5 11h5" stroke="#0066CC" stroke-width=".9" stroke-linecap="round"/></svg></div><div class="fi-body"><h4>Reports &amp; Export</h4><p>One-click Word / Excel output. All results exportable via API for custom design sheets, dashboards, quantity schedules, and third-party tools.</p></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ CONTRACTOR ═══════════════════════════ -->
+<div class="screen slide-right" id="contractor">
+  <div style="display:flex;flex-direction:column;height:100%;background:var(--bg);" class="inner-page con-page">
+    <div class="ip-header">
+      <div class="color-stripe"></div>
+      <div class="header-content">
+        <div class="back-btn" onclick="goHome()"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M8 2L3 6l5 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg> Back</div>
+        <div class="ip-header-text"><h2>Contractor &amp; Construction</h2><p>Construction engineering tools — MIDAS Civil NX</p></div>
+      </div>
+    </div>
+    <div class="ip-body">
+      <div class="ip-sidebar">
+        <div class="nav-btn active" onclick="showTopic('cc','ve')" id="cc-ve-btn"><span class="nav-dot"></span>Value Engineering</div>
+        <div class="nav-btn" onclick="showTopic('cc','erection')" id="cc-erection-btn"><span class="nav-dot"></span>Erection &amp; Stability</div>
+        <div class="nav-btn" onclick="showTopic('cc','temp')" id="cc-temp-btn"><span class="nav-dot"></span>Temporary Works</div>
+        <div class="nav-btn" onclick="showTopic('cc','ped')" id="cc-ped-btn"><span class="nav-dot"></span>Specialty &amp; Pedestrian</div>
+      </div>
+      <div class="ip-content">
+
+        <!-- ── VALUE ENGINEERING ──────────────── -->
+        <div class="topic-panel active" id="cc-ve">
+          <div class="tp-title">Prove the Alternate. Win the Bid.</div>
+          <p class="tp-lead">The consultant's 30% design says 5 girders. Prove you can do it with 4. Or pivot to a truss. Generate alternates in minutes, not days.</p>
+          <div class="hook-row">
+            <div class="hook-card"><div class="hv">Minutes</div><div class="hl">Full VE alternate generated and checked in one session</div></div>
+            <div class="hook-card"><div class="hv">Color Map</div><div class="hl">Blue = under-stressed = room to save steel and cost</div></div>
+            <div class="hook-card"><div class="hv">Truss Pivot</div><div class="hl">Switch girder type and verify compliance in the same model</div></div>
+          </div>
+          <div class="f-list">
+            <div class="fi"><div class="fi-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 12l3-5 3 3 3-6" stroke="#E07A00" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="fi-body"><h4>Rapid Parametric Modeling</h4><p>Generate a full 3D composite bridge in under a minute. Change girder spacing, skew, or span length instantly and see the steel weight impact.</p></div></div>
+            <div class="fi"><div class="fi-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 12V4l4-2 4 2v8l-4 2-4-2z" stroke="#E07A00" stroke-width="1.1" stroke-linejoin="round"/></svg></div><div class="fi-body"><h4>SPC for Custom Sections</h4><p>Pitch a cheaper built-up section. Drop the DXF. Torsion and warping constants computed without a separate tool.</p></div></div>
+            <div class="fi"><div class="fi-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="#E07A00" stroke-width="1.1"/><path d="M5 8l2 2 4-4" stroke="#E07A00" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="fi-body"><h4>Utilization Maps</h4><p>Run the analysis. If the bridge is under-stressed, you have room to thin the steel and save project cost.</p></div></div>
+            <div class="fi"><div class="fi-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 12l4-6 3 4 3-6" stroke="#E07A00" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="fi-body"><h4>Truss Alternates</h4><p>Pivot entirely from plate girders to a truss scheme and verify code compliance in the same environment.</p></div></div>
+          </div>
+          <div class="media-slot">Video slots: <code>media/CC-ve-alternate-scheme</code> &middot; <code>media/SE-steel-truss-design</code></div>
+        </div>
+
+        <!-- ── ERECTION & STABILITY ──────────── -->
+        <div class="topic-panel" id="cc-erection">
+          <div class="tp-title">Prove the Sequence Won't Fail</div>
+          <p class="tp-lead">Steel hanging from a crane. Wet deck. Prove to the EOR that your construction sequence won't buckle the permanent structure.</p>
+          <div class="hook-row">
+            <div class="hook-card"><div class="hv">Stage-by-Stage</div><div class="hl">Stress and deflection tracked at every pour step and lift</div></div>
+            <div class="hook-card"><div class="hv">CLM</div><div class="hl">Critical load multiplier on any temporary state — prove bracing first</div></div>
+            <div class="hook-card"><div class="hv">Concurrent</div><div class="hl">Exact forces at any stage for temporary connection design</div></div>
+          </div>
+          <div class="f-list">
+            <div class="fi"><div class="fi-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 12l3-5 3 3 4-6" stroke="#E07A00" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="fi-body"><h4>Construction Stage Analysis</h4><p>Model exactly how the bridge is built. Steel weight on, deck poured span-by-span. Locked-in stresses and deflections (camber) tracked at every pour step.</p></div></div>
+            <div class="fi"><div class="fi-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v4M8 10v4M2 8h4M10 8h4" stroke="#E07A00" stroke-width="1.1" stroke-linecap="round"/><circle cx="8" cy="8" r="2" stroke="#E07A00" stroke-width="1"/></svg></div><div class="fi-body"><h4>Buckling &amp; Wind Stability</h4><p>Steel tub girders are vulnerable until the deck cures. Run eigenvalue buckling on any erection stage. Get the critical load multiplier. Prove temporary wind bracing is sufficient.</p></div></div>
+            <div class="fi"><div class="fi-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10" stroke="#E07A00" stroke-width="1.2" stroke-linecap="round"/><path d="M8 3v10" stroke="#E07A00" stroke-width="1.2" stroke-linecap="round"/></svg></div><div class="fi-body"><h4>Concurrent Forces</h4><p>Pull the exact concurrent axial, shear, and moment at a specific stage. Don't over-design temporary splices or bracing with max envelope values.</p></div></div>
+          </div>
+          <div class="media-slot">Video slots: <code>media/CC-stability-bracing</code> &middot; <code>media/SE-construction-stage-erection</code></div>
+        </div>
+
+        <!-- ── TEMPORARY WORKS ───────────────── -->
+        <div class="topic-panel" id="cc-temp">
+          <div class="tp-title">Design What Gets Ripped Out</div>
+          <p class="tp-lead">Falsework towers, temporary haul bridges, SPMT loading. Designed in the same model as the permanent structure.</p>
+          <div class="hook-row">
+            <div class="hook-card"><div class="hv">Same Model</div><div class="hl">Temporary props analyzed inside the permanent bridge model</div></div>
+            <div class="hook-card"><div class="hv">SPMT Auto</div><div class="hl">Define axle config — worst-case position found automatically</div></div>
+            <div class="hook-card"><div class="hv">Borelog → Springs</div><div class="hl">SPT data in, soil springs out. No manual calculation.</div></div>
+          </div>
+          <div class="f-list">
+            <div class="fi"><div class="fi-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="6" y="2" width="4" height="12" rx="1" stroke="#E07A00" stroke-width="1.1"/><path d="M3 14h10M3 8h3M10 8h3" stroke="#E07A00" stroke-width="1" stroke-linecap="round"/></svg></div><div class="fi-body"><h4>Integrated Shoring Models</h4><p>Build temporary props directly under the main bridge model. Concrete poured virtually. Exact load transfer into temporary towers calculated.</p></div></div>
+            <div class="fi"><div class="fi-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 10h12M4 10V6h8v4" stroke="#E07A00" stroke-width="1.1" stroke-linecap="round"/><circle cx="5" cy="12" r="1.5" stroke="#E07A00" stroke-width=".8"/><circle cx="11" cy="12" r="1.5" stroke="#E07A00" stroke-width=".8"/></svg></div><div class="fi-body"><h4>SPMT Moving Loads</h4><p>Define exact SPMT axle spacing and weight. Worst-case position found automatically on any temporary bridge deck.</p></div></div>
+            <div class="fi"><div class="fi-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M4 8l4-6 4 6" stroke="#E07A00" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="fi-body"><h4>Borelog to Soil Springs</h4><p>Input geotechnical borelog data. MIDAS auto-generates nonlinear soil springs for temporary foundation capacity checks. No manual spring calculation.</p></div></div>
+          </div>
+          <div class="media-slot">Video slots: <code>media/CC-falsework-shoring</code> &middot; <code>media/CC-spmt-temp-bridges</code> &middot; <code>media/SE-foundation-soil-springs</code></div>
+        </div>
+
+        <!-- ── SPECIALTY & PEDESTRIAN ────────── -->
+        <div class="topic-panel" id="cc-ped">
+          <div class="tp-title">Custom Geometry. Real Checks.</div>
+          <p class="tp-lead">Modular pedestrian bridges, Fink trusses, custom lifting frames, turnbuckle bracing. Engineering checks that match the complexity.</p>
+          <div class="hook-row">
+            <div class="hook-card"><div class="hv">Time-History</div><div class="hl">Real load input (walk / jog / crowd) — not simplified</div></div>
+            <div class="hook-card"><div class="hv">3D → Beam</div><div class="hl">Virtual beams extract design forces from plate geometry</div></div>
+            <div class="hook-card"><div class="hv">Native</div><div class="hl">Skewed, curved, custom geometry — no workarounds</div></div>
+          </div>
+          <div class="f-list">
+            <div class="fi"><div class="fi-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8h2l1.5-4 1.5 8 1.5-5 1.5 4h2" stroke="#E07A00" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="fi-body"><h4>Pedestrian Vibration</h4><p>Input actual walking, jogging, or crowd time-history loads. Prove acceleration is within comfort limits.</p></div></div>
+            <div class="fi"><div class="fi-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="5" height="5" rx="1" stroke="#E07A00" stroke-width="1"/><rect x="9" y="3" width="5" height="5" rx="1" stroke="#E07A00" stroke-width="1"/><rect x="5" y="8" width="6" height="5" rx="1" stroke="#E07A00" stroke-width="1"/></svg></div><div class="fi-body"><h4>Virtual Beams for Complex Joints</h4><p>Model a turnbuckle connection or custom joint as 3D plates. Extract simple beam forces via virtual beams for standard code checks.</p></div></div>
+            <div class="fi"><div class="fi-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 12l4-6 3 4 3-6" stroke="#E07A00" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="fi-body"><h4>Non-Standard Geometry</h4><p>Skewed, curved, or highly custom structures handled natively without workarounds.</p></div></div>
+          </div>
+          <div class="media-slot">Video slots: <code>media/CC-pedestrian-custom</code> &middot; <code>media/SE-pedestrian-bridges</code></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var currentPage='home';
+function showPage(id){var f=document.getElementById(currentPage),t=document.getElementById(id);if(!f||!t)return;f.classList.remove('active');f.classList.add('slide-left');t.classList.remove('slide-right');t.classList.add('active');setTimeout(function(){f.classList.remove('slide-left');},300);currentPage=id;}
+function goHome(){var f=document.getElementById(currentPage),t=document.getElementById('home');if(!f||!t)return;f.classList.remove('active');f.classList.add('slide-right');t.classList.remove('slide-left');t.classList.add('active');setTimeout(function(){f.classList.remove('slide-right');},300);currentPage='home';t.scrollTop=0;}
+function showTopic(prefix,topic){var btn=document.getElementById(prefix+'-'+topic+'-btn');if(!btn)return;var page=btn.closest('.inner-page');if(!page)return;page.querySelectorAll('.topic-panel').forEach(function(p){p.classList.remove('active');});page.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('active');});var panel=document.getElementById(prefix+'-'+topic);if(panel)panel.classList.add('active');btn.classList.add('active');}
+</script>
+</body>
+</html>
